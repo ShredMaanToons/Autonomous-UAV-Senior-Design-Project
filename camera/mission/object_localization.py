@@ -210,9 +210,9 @@ class ObjectLocalizationMission(BaseMission):
                         f"— ZERO SCORE penalty threshold breached!"
                     )
                     self.result.data["zero_score_altitude_breach"] = True
-                if alt < min_alt:
+                if alt < min_alt + 1: # +1 meter to add buffer before loosing points
                     logger.warning(
-                        f"Altitude {alt:.1f}m below minimum {min_alt:.1f}m — climbing"
+                        f"Altitude {alt:.1f}m approaching minimum {min_alt:.1f}m — climbing"
                     )
                     await self.controller.set_velocity_ned(
                         north=0.0, east=0.0, down=-0.5  # climb
