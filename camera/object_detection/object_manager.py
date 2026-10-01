@@ -31,10 +31,10 @@ class ObjectManager:
         with open(file, "w") as f:
             json.dump(self.objects, f, indent=4)
 
-
+    # Will be rewritten to account for pitch and yaw
     def _target_position(self, drone_lat,drone_lon,altitude, det):
-        # Converts the targets pixel offset into an estimated GPS position
-        # using drone GPS location and altitude
+        """Converts the targets pixel offset into an estimated GPS position
+        using drone GPS location and altitude"""
 
         dx,dy = det["error"]
 
@@ -57,14 +57,14 @@ class ObjectManager:
         return obj_lat, obj_lon
         
     def _find_match(self, target_class, lat, lon):
-        # Searches stored objects for the same class within the distance threshold
+        """Searches stored objects for the same class within the distance threshold"""
 
-        for i, obj in enumerate(self.objects):
+        for i, obj in enumerate(self.objects): # Skips all objects that are a different class
             if obj["class"] != target_class:
                 continue
-            dist = self._gps_distance(lat,lon,obj["lat"], obj["lon"])
+            dist = self._gps_distance(lat,lon,obj["lat"], obj["lon"]) # run method to determine distance between stored object and detected object
 
-            if dist < self.distance_thresh:
+            if dist < self.distance_thresh: # indicate if it is within the minimum distance of a previously detected object of the same class
                 return i
         return None
     
@@ -81,7 +81,7 @@ class ObjectManager:
 
 
     def _create_object(self, target_class, lat, lon, conf):
-        # Adds a newly detected target to the object list
+        """Adds a newly detected target to the object list"""
         self.objects.append({
             "class": target_class,
             "lat": lat,
@@ -92,13 +92,13 @@ class ObjectManager:
 
 
     def _gps_distance(self,lat1,lon1,lat2,lon2):
-        # Converts two GPS coordinates into ground distance in meters for duplicate target matching
+        """Converts two GPS coordinates into ground distance in meters for duplicate target matching"""
         dx = (lon2 - lon1) * 111111 * math.cos(math.radians(lat1))
         dy = (lat2 - lat1) * 111111
         return math.sqrt(dx**2 + dy**2)
         
     def get_confirmed_objects(self):
-        # Returns only targets detected a minimum number of times to reduce false positives
+        """Returns only targets detected a minimum number of times to reduce false positives"""
         confirmed = []
 
         for obj in self.objects:
