@@ -1,31 +1,32 @@
 import math
-import json
+import json # For saving the data to a file
 
 class ObjectManager:
-
+    # When creating on object from this class automatically automatically creates an empty array to store the objects and sets it distance and detection threshold
     def __init__(self, distance_thresh_m=2.5, min_detections=2):
         self.objects = []
         self.distance_thresh = distance_thresh_m
         self.min_detections = min_detections
 
+    # Method to feed the drone position and object information into the other methods
     def update(self, detections, drone_gps, altitude):
-
+        """Feeds detected objects and the current drone position into methods for finding the object position, matching it to a previous detection, or creating a new detection"""
         lat, lon = drone_gps
 
         for det in detections:
-            obj_lat, obj_lon = self._target_position(lat, lon, altitude, det)
+            obj_lat, obj_lon = self._target_position(lat, lon, altitude, det)   # run method to determine object position
 
-            match = self._find_match(det["class"], obj_lat, obj_lon)
+            match = self._find_match(det["class"], obj_lat, obj_lon)   # run method to determine the index of the first object of the same class that is within the distance threshold
 
             if match is not None:
-                self._update_object(match, obj_lat, obj_lon, det["conf"])
+                self._update_object(match, obj_lat, obj_lon, det["conf"])   # if there was a match we run the method to update the matched object's position and confidence data
             else:
-                self._create_object(det["class"], obj_lat, obj_lon, det["conf"])
+                self._create_object(det["class"], obj_lat, obj_lon, det["conf"])   # if there was no match we run the method to create a new object.
 
-        self.save_objects()
+        self.save_objects()   # Write the list of objects to objects.txt
 
 
-
+    # Write the list of objects to objects.txt
     def save_objects(self, file="objects.txt"):
         with open(file, "w") as f:
             json.dump(self.objects, f, indent=4)
@@ -71,12 +72,12 @@ class ObjectManager:
         # Averages a repeated detection's GPS location and update confidence and count
         obj = self.objects[idx]
 
-        count = obj["count"]
+        count = obj["count"] # read the amound of times this object has been seen into a variable
 
         obj["lat"] = (obj["lat"] * count + lat) / (count + 1)
         obj["lon"] = (obj["lon"] * count + lon) / (count + 1)
-        obj["conf"] = max(obj["conf"], conf)
-        obj["count"] += 1
+        obj["conf"] = max(obj["conf"], conf) # set the confidence to the highest confidence from all detections
+        obj["count"] += 1 # Count the new object
 
 
     def _create_object(self, target_class, lat, lon, conf):
