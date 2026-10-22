@@ -55,6 +55,9 @@ class ObjectManager:
         obj_lon = drone_lon + (dlon / (111320 * math.cos(math.radians(drone_lat))))
 
         return obj_lat, obj_lon
+
+# ----------------------------
+# Place rewrite here
         
     def _find_match(self, target_class, lat, lon):
         """Searches stored objects for the same class within the distance threshold"""
