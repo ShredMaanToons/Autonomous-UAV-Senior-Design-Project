@@ -74,6 +74,7 @@ class ObjectManager:
         # * Non-linear camera
         # * Possibly need to couple pitch and roll (Cannot be calculated seperately?)
         # * Edge case exceptions for tan
+        # * Impliment timestamp
         
     def _find_match(self, target_class, lat, lon):
         """Searches stored objects for the same class within the distance threshold"""
