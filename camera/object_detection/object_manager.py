@@ -31,33 +31,49 @@ class ObjectManager:
         with open(file, "w") as f:
             json.dump(self.objects, f, indent=4)
 
-    # Will be rewritten to account for pitch and yaw
-    def _target_position(self, drone_lat,drone_lon,altitude, det):
+# Rewrite of _target_position
+    def _target_position(self, drone_lat,drone_lon, drone_yaw, drone_pitch, drone_roll, altitude, det):
         """Converts the targets pixel offset into an estimated GPS position
-        using drone GPS location and altitude"""
+        using drone GPS location, pitch, roll, yaw, and altitude"""
 
-        dx,dy = det["error"]
+        dx,dy = det["error"] # pixels away from center of screen [ direction-> +(> ^) ]
 
         # Find total area camera can see
-        FOVW = math.radians(50)
-        FOVL = math.radians(38)
-        W = 2*altitude * math.tan(FOVW/2)
-        L = 2*altitude * math.tan(FOVL/2)
+        FOVH = math.radians(50) # Radians horizontal
+        FOVV = math.radians(38) # Radians vertical
+        # Find radian based angle of ray to object: -----
+        ANGH = (dx/640) * (FOVH) # Angle horizontal = ratio of pixels from center to all pixels (left -0.5 to 0.5 right) multiplied by total radians
+        ANGV = (dy/480) * (FOVV) # Angle vertical = ratio of pixels from center to all pixels (bottom -0.5 to 0.5 top) multiplied by total radians
+        
+        # adjust angle based on pitch and roll: -----
+        # pitch and roll degrees to radians
+        PITCH_RAD = math.radians(drone_pitch)
+        ROLL_RAD = math.radians(drone_roll)
+        # ADD pitch and roll radians to final radian angle of ray to object
+        ANGV += PITCH_RAD # Positive pitch is nose up (so add)
+        ANGH -= ROLL_RAD # Positive roll is banking to the right (so subtract)
 
-        # Compute meters per pixel in X and Y directions
-        H_scale = W/640
-        V_scale = L/480
+        # Change angle into distance on ground: -----
+        METER_V = altitude * math.tan(ANGV) #(+ ^)
+        METER_H = altitude * math.tan(ANGH) #(+ >)
 
-        # Convert pixel offsets to real-world GPS offsets (meters → degrees)
-        dlat = dy*V_scale
-        dlon = dx*H_scale
-        obj_lat = drone_lat + (dlat / 111320)
-        obj_lon = drone_lon + (dlon / (111320 * math.cos(math.radians(drone_lat))))
+        # Rotate for yaw: -----
+        # change yaw to radians
+        YAW_RAD = math.radians(drone_yaw) # Positive is clockwise as seen from above, the image the camera sees spins opposite
+        # rotate
+        METER_EAST = (METER_H * math.cos(YAW_RAD)) + (METER_V * math.sin(YAW_RAD)) # Left right
+        METER_NORTH = -(METER_H * math.sin(YAW_RAD)) + (METER_V * math.cos(YAW_RAD)) # Up down
+
+        # Add latitude and longitude to drone latitude and longitude
+        obj_lat = drone_lat + (METER_NORTH / 111320)
+        obj_lon = drone_lon + (METER_EAST / (111320 * math.cos(math.radians(drone_lat))))
 
         return obj_lat, obj_lon
-
-# ----------------------------
-# Place rewrite here
+        # Double check that the inputs are in degrees
+        # IMPROVEMENTS -------------------------------------
+        # * Non-linear camera
+        # * Possibly need to couple pitch and roll (Cannot be calculated seperately?)
+        # * Edge case exceptions for tan
         
     def _find_match(self, target_class, lat, lon):
         """Searches stored objects for the same class within the distance threshold"""
