@@ -84,8 +84,8 @@ class ObjectManager:
         using drone GPS location, pitch, roll, yaw, and altitude"""
     # Improved _target_position
     # Intrinsic parameters
-        fx = 0 # Focal length in pixels
-        fy = 0 # Replace when camera has been calibrated
+        fx = 686 # Focal length in pixels
+        fy = 697 # Replace when camera has been calibrated
         cx = 320 # Principal point: pixel where the optical axis hits the sensor
         cy = 240 # Replace when camera has been calibrated
     # Lens distortion parameters
