@@ -1,5 +1,7 @@
 import math
 import json # For saving the data to a file
+#import cv2 # Import for cv2.undistortPoints for target position
+#import numpy as np # Import for np.array for target position
 
 class ObjectManager:
     # When creating on object from this class automatically automatically creates an empty array to store the objects and sets it distance and detection threshold
@@ -75,7 +77,33 @@ class ObjectManager:
         # * Possibly need to couple pitch and roll (Cannot be calculated seperately?)
         # * Edge case exceptions for tan
         # * Impliment timestamp
-        
+'''
+    # Improved _target_position
+    # Intrinsic parameters
+    fx = 0 # Focal length in pixels
+    fy = 0 # Replace when camera has been calibrated
+    cx = 320 # Principal point: pixel where the optical axis hits the sensor
+    cy = 240 # Replace when camera has been calibrated
+    # Lens distortion parameters
+    k1 = 0 # Radial distortion: straight lines bowing
+    k2 = 0 # k = 0 for ideal camera
+    k3 = 0 # Replace when camera has been calibrated
+    p1 = 0 # Tangental distortion: lens not perfectly parallel to sensor
+    p2 = 0 # Replace when camera has been calibrated ----------------------- These vars should be found with cv2.calibrateCamera
+    # Undistorting the position of the detection
+    K = np.array([[fx, 0, cx],
+                  [0, fy, cy], # Intrinsic matrix, packs the camera calibration data for cv2.undistortPoints
+                  [0,  0,  1]], dtype=np.float64)
+
+    dist = np.array([k1, k2, p1, p2, k3], dtype=np.float64) # Packs the distortion coefficients for cv2.undistortPoints
+
+    u, v = dx + 320, -dy + 240 # reformat point to originate at top left and have +y be downwards
+    pt = np.array([[[u, v]]], dtype=np.float64) # Packs the detection point for cv2.undistortPoints
+    xn, yn = cv2.undistortPoints(pt, K, dist)[0, 0] # New points based on ideal pinhole camera, using normalized x,y coordinates
+
+    ray = np.array([-yn, xn, 1.0]) # Creates a ray to use for projecting to ground. -yn so positive is forward
+'''
+    
     def _find_match(self, target_class, lat, lon):
         """Searches stored objects for the same class within the distance threshold"""
 
