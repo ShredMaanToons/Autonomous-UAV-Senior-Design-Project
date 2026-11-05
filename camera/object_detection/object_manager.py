@@ -16,7 +16,8 @@ class ObjectManager:
         lat, lon = drone_gps
 
         for det in detections:
-            obj_lat, obj_lon = self._target_position(lat, lon, altitude, det)   # run method to determine object position
+            '''Must Be updated!!!'''
+            #obj_lat, obj_lon = self._target_position(lat, lon, altitude, det)   # run method to determine object position
 
             match = self._find_match(det["class"], obj_lat, obj_lon)   # run method to determine the index of the first object of the same class that is within the distance threshold
 
