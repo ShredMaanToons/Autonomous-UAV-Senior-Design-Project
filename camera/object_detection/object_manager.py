@@ -82,6 +82,9 @@ class ObjectManager:
     def _target_position(self, drone_lat,drone_lon, drone_yaw, drone_pitch, drone_roll, altitude, det):
         """Converts the targets pixel offset into an estimated GPS position
         using drone GPS location, pitch, roll, yaw, and altitude"""
+    
+        dx,dy = det["error"] # pixels away from center of screen [ direction-> +(> ^) ]
+    
     # Improved _target_position
     # Intrinsic parameters
         fx = 686 # Focal length in pixels
@@ -96,50 +99,52 @@ class ObjectManager:
         p2 = 0 # Replace when camera has been calibrated ----------------------- These vars should be found with cv2.calibrateCamera
     # Undistorting the position of the detection
         K = np.array([[fx, 0, cx],
-                      [0, fy, cy], # Intrinsic matrix, packs the camera calibration data for cv2.undistortPoints
-                      [0,  0,  1]], dtype=np.float64)
-
+                        [0, fy, cy], # Intrinsic matrix, packs the camera calibration data for cv2.undistortPoints
+                        [0,  0,  1]], dtype=np.float64)
+    
         dist = np.array([k1, k2, p1, p2, k3], dtype=np.float64) # Packs the distortion coefficients for cv2.undistortPoints
-
-        u, v = dx + 320, -dy + 240 # reformat point to originate at top left and have +y be downwards
+    
+        u, v = dx + cx, -dy + cy # reformat point to originate at top left and have +y be downwards
         pt = np.array([[[u, v]]], dtype=np.float64) # Packs the detection point for cv2.undistortPoints
         xn, yn = cv2.undistortPoints(pt, K, dist)[0, 0] # New points based on ideal pinhole camera, using normalized x,y coordinates
-
+    
         ray = np.array([-yn, xn, 1.0]) # Creates a ray to use for projecting to ground. -yn so positive is forward
-
-
+    
+    
     #Acounting for roll, pitch, and yaw
     # pitch, roll, and yaw degrees to radians
         PITCH_RAD = math.radians(drone_pitch)
         ROLL_RAD = math.radians(drone_roll)
         YAW_RAD = math.radians(drone_yaw) # Positive is clockwise as seen from above, the image the camera sees spins opposite
     # variables to represent sin and cos of each rotation
-        cy, sy = math.cos(YAW_RAD), math.sin(YAW_RAD)
-        cp, sp = math.cos(PITCH_RAD), math.sin(PITCH_RAD)
-        cr, sr = math.cos(ROLL_RAD), math.sin(ROLL_RAD)
-
+        cos_y, sin_y = math.cos(YAW_RAD), math.sin(YAW_RAD)
+        cos_p, sin_p = math.cos(PITCH_RAD), math.sin(PITCH_RAD)
+        cos_r, sin_r = math.cos(ROLL_RAD), math.sin(ROLL_RAD)
+    
         Rx = [[1,   0,    0 ],    # roll: rotate about forward axis
-            [0,  cr,  -sr ],
-            [0,  sr,   cr ]]
-
-        Ry = [[ cp, 0,  sp ],    # pitch: rotate about right axis
+            [0,  cos_r,  -sin_r ],
+            [0,  sin_r,   cos_r ]]
+    
+        Ry = [[ cos_p, 0,  sin_p ],    # pitch: rotate about right axis
             [  0, 1,   0 ],
-            [-sp, 0,  cp ]]
-
-        Rz = [[cy, -sy, 0 ],      # yaw: rotate about down axis
-            [sy,  cy, 0 ],
+            [-sin_p, 0,  cos_p ]]
+    
+        Rz = [[cos_y, -sin_y, 0 ],      # yaw: rotate about down axis
+            [sin_y,  cos_y, 0 ],
             [ 0,   0, 1 ]]
-
+    
         ray_ned = Rz @ Ry @ Rx @ ray # Matrix multiplication combine the rotations with the ray
-
+    
+        if ray_ned[2] <= 0.05:  # Ray is pointing too close to or above the horizon
+            return None
         scale = altitude / ray_ned[2] # Find the relationship between the altitude and the vertical ray component.
         meter_north = ray_ned[0] * scale # Scale the north/south ray component to the meter amount
         meter_east  = ray_ned[1] * scale # Scale the east/west ray component to the meter amount
-
+    
     # Add latitude and longitude to drone latitude and longitude
         obj_lat = drone_lat + (meter_north / 111320)
         obj_lon = drone_lon + (meter_east / (111320 * math.cos(math.radians(drone_lat))))
-
+    
         return obj_lat, obj_lon
     # Double check that the inputs are in degrees
     # IMPROVEMENTS -------------------------------------
