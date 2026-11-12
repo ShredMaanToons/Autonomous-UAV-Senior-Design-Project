@@ -37,6 +37,9 @@ prev_img_shape = None
 # jpg files alone
 images = glob.glob('*.jpg')
 
+cv2.namedWindow('img', cv2.WINDOW_NORMAL)
+cv2.resizeWindow('img', 1200, 600)
+
 for filename in images:
     image = cv2.imread(filename)
     grayColor = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -46,9 +49,14 @@ for filename in images:
     # found in the image then ret = true
     ret, corners = cv2.findChessboardCorners(
                     grayColor, CHECKERBOARD, 
-                    cv2.CALIB_CB_ADAPTIVE_THRESH 
-                    + cv2.CALIB_CB_FAST_CHECK + 
-                    cv2.CALIB_CB_NORMALIZE_IMAGE)
+                    cv2.CALIB_CB_ADAPTIVE_THRESH # Removed + cv2.CALIB_CB_FAST_CHECK 
+                    + cv2.CALIB_CB_NORMALIZE_IMAGE)
+
+    if not ret:  # fallback detector
+        ret, corners = cv2.findChessboardCornersSB(
+            grayColor, CHECKERBOARD, cv2.CALIB_CB_EXHAUSTIVE)
+
+    print(filename, "FOUND" if ret else "NOT found")
 
     # If desired number of corners can be detected then,
     # refine the pixel coordinates and display
@@ -91,8 +99,8 @@ print(matrix)
 print("\n Distortion coefficient:")
 print(distortion)
 
-print("\n Rotation Vectors:")
-print(r_vecs)
+#print("\n Rotation Vectors:")
+#print(r_vecs)
 
-print("\n Translation Vectors:")
-print(t_vecs)
+#print("\n Translation Vectors:")
+#print(t_vecs)
