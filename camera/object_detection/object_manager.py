@@ -1,7 +1,7 @@
 import math
 import json # For saving the data to a file
-#import cv2 # Import for cv2.undistortPoints for target position
-#import numpy as np # Import for np.array for target position
+import cv2 # Import for cv2.undistortPoints for target position
+import numpy as np # Import for np.array for target position
 
 class ObjectManager:
     # When creating on object from this class automatically automatically creates an empty array to store the objects and sets it distance and detection threshold
