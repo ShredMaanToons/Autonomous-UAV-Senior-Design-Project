@@ -1,8 +1,8 @@
 # In case of using a new camera or lens the camera must be calibrated with this code
 For a guide on calibration reference this website:
 https://www.geeksforgeeks.org/python/camera-calibration-with-python-opencv/
-> [!note]
-> There is a scam add on this website that will change the entire screen to try to make it look like you are hacked.
+> [!warning]
+> There is a scam ad on this website that will change the entire screen to try to make it look like you are hacked.
 
 **Copy the code to a .py file on your computer.
 
