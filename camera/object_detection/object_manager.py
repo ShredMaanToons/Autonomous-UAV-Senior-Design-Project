@@ -87,16 +87,16 @@ class ObjectManager:
     
     # Improved _target_position
     # Intrinsic parameters
-        fx = 686 # Focal length in pixels
-        fy = 697 # Replace when camera has been calibrated
-        cx = 320 # Principal point: pixel where the optical axis hits the sensor
-        cy = 240 # Replace when camera has been calibrated
+        fx = 782.97012129 # Focal length in pixels
+        fy = 782.15425781 
+        cx = 303.37701841 # Principal point: pixel where the optical axis hits the sensor
+        cy = 225.68735933 
     # Lens distortion parameters
-        k1 = 0 # Radial distortion: straight lines bowing
-        k2 = 0 # k = 0 for ideal camera
-        k3 = 0 # Replace when camera has been calibrated
-        p1 = 0 # Tangental distortion: lens not perfectly parallel to sensor
-        p2 = 0 # Replace when camera has been calibrated ----------------------- These vars should be found with cv2.calibrateCamera
+        k1 = -0.50139567 # Radial distortion: straight lines bowing
+        k2 = 0.3469868 # k = 0 for ideal camera
+        k3 = -0.27986178
+        p1 = 0.00266273 # Tangental distortion: lens not perfectly parallel to sensor
+        p2 = 0.00129382 ----------------------- These vars should be found with cv2.calibrateCamera
     # Undistorting the position of the detection
         K = np.array([[fx, 0, cx],
                         [0, fy, cy], # Intrinsic matrix, packs the camera calibration data for cv2.undistortPoints
