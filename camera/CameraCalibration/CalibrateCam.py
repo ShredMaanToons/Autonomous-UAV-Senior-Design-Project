@@ -35,7 +35,7 @@ prev_img_shape = None
 # in a given directory. Since no path is
 # specified, it will take current directory
 # jpg files alone
-images = glob.glob('*.jpg')
+images = glob.glob('*.png')
 
 cv2.namedWindow('img', cv2.WINDOW_NORMAL)
 cv2.resizeWindow('img', 1200, 600)
@@ -99,8 +99,8 @@ print(matrix)
 print("\n Distortion coefficient:")
 print(distortion)
 
-#print("\n Rotation Vectors:")
-#print(r_vecs)
+print("\n Rotation Vectors:")
+print(r_vecs)
 
-#print("\n Translation Vectors:")
-#print(t_vecs)
+print("\n Translation Vectors:")
+print(t_vecs)
